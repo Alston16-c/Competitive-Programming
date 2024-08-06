@@ -1,0 +1,43 @@
+// maximize bl + bm + br − (r − l) -> bl + l + bm + br - r
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+
+vector<int> ans;
+
+void solve() {
+    int n, beauty[100005], prefix[100005], suffix[100005], best = 0; cin >> n;
+    for(int i = 0; i < n; i++) cin >> beauty[i];
+    
+    for(int i = 0; i < n; i++){
+        prefix[i] = beauty[i] + i;
+        suffix[i] = beauty[i] - i;
+    }
+    
+    for(int i = 1; i < n; i++) {
+		prefix[i] = max(prefix[i], prefix[i - 1]);
+	}
+	for(int i = n - 2; i >= 0; i--) {
+		suffix[i] = max(suffix[i], suffix[i + 1]);
+	}
+	
+	for(int i = 1; i < n-1; i++){
+	    best = max(best, prefix[i-1] + suffix[i+1] + beauty[i]);
+	}
+	
+	ans.pb(best);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t = 1;
+    cin >> t;
+    while (t--) solve();
+    for(auto x:ans)cout << x << endl;
+}
