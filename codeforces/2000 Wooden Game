@@ -1,0 +1,44 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+
+void solve() {
+    int n, tree[1000006], ans = 0;
+    cin >> n;
+    for(int i = 0; i < n; i++){
+        cin >> tree[i];
+        for(int j = 0; j < tree[i]-1; j++){
+            int x; cin >> x;
+        }
+    }
+    sort(tree, tree+n);
+    for(int i = n-1; i >= 0; i--){
+        for(int bits = 23; bits >= 0; bits--){
+            bool hasBits = false;
+            if(tree[i] & 1<<bits)hasBits = true;
+            if (!hasBits) continue;
+            
+            if(ans & 1<<bits){
+                ans |= ((1<<bits) - 1);
+                break;
+            }else{
+                ans |= (1<<bits);
+            }
+        }
+    }
+    
+    cout << ans << endl;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t;
+    cin >> t;
+    while (t--) solve();
+}
