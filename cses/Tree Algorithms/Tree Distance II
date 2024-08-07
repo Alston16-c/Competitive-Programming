@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+
+vector<vector<ll>> adj(200005, vector<ll>());
+vector<ll> children(200005, 0), ans(200005, 0);
+
+void dfs(int node, int par){
+    for(int next: adj[node]){
+        if (next == par)continue;
+        dfs(next,node);
+        children[node] += children[next];
+        ans[node] += ans[next] + children[next];
+    }
+    children[node]++;
+}
+
+void dfs2(int node, int par, int n){
+    
+    if(par != -1){
+        ans[node] += ans[par] - (children[node] + ans[node]) + (n-children[node]);
+    }
+    
+    for(int next: adj[node]){
+        if (next == par)continue;
+        dfs2(next,node,n);
+    }
+}
+
+
+void solve() {
+    int n; cin >> n;
+    for(int i = 0; i < n-1; i++){
+        int x; int y; cin >> x >> y;
+        adj[x].pb(y);
+        adj[y].pb(x);
+    }
+    
+    dfs(1, -1);
+    dfs2(1, -1, n);
+	for (int i = 1; i <= n; i++) { cout << ans[i] << " "; }
+
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t = 1;
+    //cin >> t;
+    while (t--) solve();
+    return 0;
+}
