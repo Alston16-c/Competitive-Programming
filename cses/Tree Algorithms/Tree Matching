@@ -1,0 +1,49 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+
+vector<vector<int>> adj(200005, vector<int>());
+vector<vector<int>> dp(200005, vector<int>(2, -1));
+
+void dfs(int node, int par){
+    dp[node][0] = 0;
+    dp[node][1] = 0;
+    for(int next: adj[node]){
+        if(next == par) continue;
+        
+        dfs(next, node);
+        dp[node][0] += max(dp[next][0], dp[next][1]);
+    }
+    
+    for(int next: adj[node]){
+        if(next == par) continue;
+        
+        dp[node][1] = max(dp[node][1], 1 + dp[node][0] - max(dp[next][0], dp[next][1]) + dp[next][0]);
+    }
+    
+}
+
+void solve() {
+    int n; cin >> n;
+    for(int i = 0; i < n-1; i++){
+        int x; int y; cin >> x >> y;
+        adj[x].pb(y);
+        adj[y].pb(x);
+    }
+    dfs(1,-1);
+    cout << max(dp[1][0], dp[1][1]);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t = 1;
+    //cin >> t;
+    while (t--) solve();
+    return 0;
+}
