@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+
+int up[200005][20], depth[200005];
+vector<vector<int>> adj(200005, vector<int>());
+vector<int> ans;
+
+void dfs(int node, int par, int d){
+    depth[node] = d;
+    for(auto next:adj[node]){
+        if (par == next) continue;
+        dfs(next, node, d+1);
+    }
+}
+
+int get_lca(int a, int b){
+    if(depth[a] < depth[b]){
+        swap(a, b);
+    }
+    
+    int jump = depth[a] - depth[b];
+    for(int k = 19; k >= 0; k--){
+        if(1<<k & jump)a = up[a][k];
+    }
+    if(a == b)return a;
+    
+    for(int k = 19; k >= 0; k--){
+        if(up[a][k] != up[b][k]){
+            a = up[a][k];
+            b = up[b][k];
+        }
+    }
+    
+    return up[a][0];
+}
+
+void solve() {
+    int n, q; cin >> n >> q;
+    for(int i = 2; i <= n; i++){
+        int x; cin >> x;
+    	up[i][0] = x;
+    	
+    	adj[x].pb(i);
+    }
+    
+    for(int k = 1; k < 20; k++){
+    	for(int i = 1; i <= n; i++){
+    	    up[i][k] = up[up[i][k-1]][k-1];
+		}
+	}
+    
+    dfs(1,-1,0);
+    
+    for(int i = 0; i < q; i++){
+        int a, b; cin >> a >> b;
+        ans.pb(get_lca(a, b));
+    }
+    
+
+    for(auto x:ans)cout <<  x << endl;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t = 1;
+    //cin >> t;
+    while (t--) solve();
+    return 0;
+}
