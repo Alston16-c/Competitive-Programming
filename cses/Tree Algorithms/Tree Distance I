@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+using namespace std;
+ 
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+ 
+vector<vector<int>> adj(200005, vector<int>());
+vector<int> firstMax(200005, 0), secondMax(200005, 0), c(200005, 0);
+ 
+void dfs1(int node, int par){
+    
+    int best = 0, best_next = 0;
+    for(int next: adj[node]){
+        if (next == par)continue;
+        dfs1(next, node);
+        
+        if (firstMax[next] + 1 > firstMax[node]) {
+			secondMax[node] = firstMax[node];
+			firstMax[node] = firstMax[next] + 1;
+			c[node] = next;
+		} else if (firstMax[next] + 1 > secondMax[node]) {
+			secondMax[node] = firstMax[next] + 1;
+		}
+        
+    }
+}
+ 
+void dfs2(int v, int p) {
+	for (auto x : adj[v]) {
+		if (x == p) continue;
+		if (c[v] == x) {
+			if (firstMax[x] < secondMax[v] + 1) {
+				secondMax[x] = firstMax[x];
+				firstMax[x] = secondMax[v] + 1;
+				c[x] = v;
+			} else {
+				secondMax[x] = max(secondMax[x], secondMax[v] + 1);
+			}
+		} else {
+			secondMax[x] = firstMax[x];
+			firstMax[x] = firstMax[v] + 1;
+			c[x] = v;
+		}
+		dfs2(x, v);
+	}
+}
+ 
+void solve() {
+    int n; cin >> n;
+    for(int i = 0; i < n-1; i++){
+        int x; int y; cin >> x >> y;
+        adj[x].pb(y);
+        adj[y].pb(x);
+    }
+    
+    dfs1(1, -1);
+	dfs2(1, -1);
+ 
+	for (int i = 1; i <= n; i++) { cout << firstMax[i] << " "; }
+    
+}
+ 
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+ 
+    int t = 1;
+    //cin >> t;
+    while (t--) solve();
+    return 0;
+}
