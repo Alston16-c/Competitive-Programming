@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+
+vector<int> tree, ans;
+
+int getMinimum(int node, int node_low, int node_high, int query_low, int query_high){
+    if (node_low >= query_low  && node_high <= query_high)return tree[node];
+    if(node_high < query_low || query_high < node_low)return 1000000009;
+    
+    int last_left = (node_high + node_low)/2;
+    return min(getMinimum(2*node, node_low, last_left, query_low, query_high), getMinimum(2*node + 1, last_left+1, node_high, query_low, query_high));
+}
+
+void solve() {
+    int n, q; cin >> n >> q;
+    vector<int> a(n);
+    for(int i = 0; i < n; i++)cin >> a[i];
+    
+    while(__builtin_popcount(n) != 1){
+        a.pb(0);
+        n++;
+    }
+    
+    tree.resize(2*n, 1000000009);
+    for(int i = 0; i < n; i++)tree[n+i] = a[i];
+    for(int i = n-1; i >= 1; i--)tree[i] = min(tree[2*i], tree[2*i + 1]);
+    
+    for(int i = 0; i < q; i++){
+        int low, high; cin >> low >> high;
+        low--;
+        high--;
+        cout << getMinimum(1, 0, n-1, low, high) << endl;
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t = 1;
+    //cin >> t;
+    while (t--) solve();
+}
