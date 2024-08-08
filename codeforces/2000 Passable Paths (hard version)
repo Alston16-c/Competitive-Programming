@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define pb push_back
+#define ll long long  
+const ll INF = 1e18L + 5;
+const ll MOD = 1e9 + 7;
+const ll MLOG = 20;
+
+int up[200005][MLOG], depth[200005];
+vector<vector<int>> adj(200005, vector<int>());
+vector<string> ans;
+
+void binary_lift(int node, int par){
+    up[node][0] = par;
+    for(int i = 1; i < MLOG; i++){
+        if(up[up[node][i-1]][i-1] != 0){
+            up[node][i] = up[up[node][i-1]][i-1];
+        }
+    }
+    
+    for(int next:adj[node]){
+        if (next == par)continue;
+        binary_lift(next, node);
+    }
+}
+
+void dfs(int node, int par, int d){
+    depth[node] = d;
+    for(auto next:adj[node]){
+        if (par == next) continue;
+        dfs(next, node, d+1);
+    }
+}
+
+int lca(int a, int b){
+    if (depth[a] < depth[b])swap(a,b);
+    
+    int dist = depth[a] - depth[b], res = 0;
+    for(int k = MLOG-1; k >= 0; k--){
+        if(1<<k & dist){
+            a = up[a][k];
+        }
+    }
+    
+    if (a==b)return a;
+    
+    for(int k = MLOG-1; k >= 0; k--){
+        if(up[a][k] != up[b][k]){
+            a = up[a][k];
+            b = up[b][k];
+        }
+    }
+    
+
+    return a[up][0];
+}
+
+int find_ans(vector<pair<int,int>>& query_list){
+    map<int,int> marked;
+    bool all_marked = true;
+    int index = 1, cur_node = query_list[0].second, second_node = -1;
+    marked[cur_node] = 1;
+    for(int i = index; i < query_list.size(); i++){
+        if (lca(cur_node, query_list[i].second) == cur_node){
+            cur_node = query_list[i].second;
+            marked[cur_node] = 1;
+        }else{
+            all_marked = false;
+            if(second_node == -1){
+                second_node = query_list[i].second;
+                if(depth[lca(second_node, cur_node)] > depth[query_list[0].second])return false;
+            }
+        }
+    }
+    
+    if(all_marked)return true;
+    
+    for(int i = index; i < query_list.size(); i++){
+        if(marked.find(query_list[i].second) != marked.end())continue;
+        
+        if (lca(second_node, query_list[i].second) == second_node){
+            second_node = query_list[i].second;
+            marked[second_node] = 1;
+        }else{
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+void solve() {
+    int n, q; cin >> n;
+    for(int i = 0; i < n-1; i++){
+        int x, y; cin >> x >> y;
+        adj[x].pb(y);
+        adj[y].pb(x);
+    }
+    
+    binary_lift(1, 0);
+    dfs(1, 0 , 0);
+    
+    cin >> q;
+    for(int i = 0; i < q; i++){
+        int num_q; cin >> num_q;
+        vector<pair<int,int>> query_list;
+        
+        for(int j = 0; j < num_q; j++){
+            int x; cin >> x;
+            query_list.pb({depth[x], x});
+        }
+        
+        sort(query_list.begin(), query_list.end());
+        
+        if (find_ans(query_list)){
+            ans.pb("YES");
+        }else{
+            ans.pb("NO");
+        }
+    }
+    
+    for(auto x:ans)cout <<  x << endl;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    
+    int t = 1;
+    //cin >> t;
+    while (t--) solve();
+    return 0;
+}
