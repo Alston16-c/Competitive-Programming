@@ -172,7 +172,7 @@ int bostan_mori(vector<int> P,vector<int> Q,long long n){
     return P[0];
 }
 
-//================== Bostan–Mori (rational GF) =================
+//================== Berlekamp Massey =================
 vector<ll> berlekamp_massey(const vector<ll>& s) {
     vector<ll> C = {1}, B = {1};
     int L = 0, m = 1;
