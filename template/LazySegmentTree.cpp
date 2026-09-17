@@ -1,169 +1,123 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template<
-    class S,
-    class F,
-    S (*op)(S, S),
-    S (*e)(),
-    S (*mapping)(F, S),
-    F (*composition)(F, F),
-    F (*id)()
->
 struct LazySegTree {
+    int n;
+    vector<int> seg, lazy;
 
-    int _n, size, log;
-    vector<S> d;
-    vector<F> lz;
-
-    LazySegTree(int n) {
-        _n = n;
-        log = 0;
-        while ((1 << log) < n) log++;
-        size = 1 << log;
-
-        d.assign(2 * size, e());
-        lz.assign(size, id());
+    LazySegTree(const vector<int>& a) : n(a.size()), seg(4 * n + 5), lazy(4 * n + 5, 0) {
+        build(0, 0, n - 1, a);
     }
 
-    LazySegTree(vector<S> v) : LazySegTree(v.size()) {
-        for (int i = 0; i < v.size(); i++)
-            d[size + i] = v[i];
-        build();
+    int combine(int a, int b) {
+        return max(a, b);
     }
 
-    void build() {
-        for (int i = size - 1; i >= 1; i--)
-            update(i);
+    void update(int ql, int qr, int val) {
+        update(0, 0, n - 1, ql, qr, val);
     }
 
-    void update(int k) {
-        d[k] = op(d[2*k], d[2*k+1]);
+    int query(int ql, int qr) {
+        return query(0, 0, n - 1, ql, qr);
     }
-
-    void all_apply(int k, F f) {
-        d[k] = mapping(f, d[k]);
-        if (k < size) lz[k] = composition(f, lz[k]);
-    }
-
-    void push(int k) {
-        all_apply(2*k, lz[k]);
-        all_apply(2*k+1, lz[k]);
-        lz[k] = id();
-    }
-
-    void set(int p, S x) {
-        p += size;
-        for (int i = log; i >= 1; i--) push(p >> i);
-
-        d[p] = x;
-
-        for (int i = 1; i <= log; i++)
-            update(p >> i);
-    }
-
-    S get(int p) {
-        p += size;
-        for (int i = log; i >= 1; i--) push(p >> i);
-        return d[p];
-    }
-
-    S prod(int l, int r) {
-        if (l == r) return e();
-
-        l += size;
-        r += size;
-
-        for (int i = log; i >= 1; i--) {
-            if (((l >> i) << i) != l) push(l >> i);
-            if (((r >> i) << i) != r) push((r-1) >> i);
+private:
+    void build(int curr, int l, int r, const vector<int>& a) {
+        if (l == r) {
+            seg[curr] = a[l];
+            return;
         }
 
-        S sml = e(), smr = e();
+        int mid = (l + r) / 2;
 
-        while (l < r) {
-            if (l & 1) sml = op(sml, d[l++]);
-            if (r & 1) smr = op(d[--r], smr);
-            l >>= 1;
-            r >>= 1;
-        }
+        build(2 * curr + 1, l, mid, a);
+        build(2 * curr + 2, mid + 1, r, a);
 
-        return op(sml, smr);
+        seg[curr] = combine(
+            seg[2 * curr + 1],
+            seg[2 * curr + 2]
+        );
     }
 
-    void apply(int l, int r, F f) {
-        if (l == r) return;
-
-        l += size;
-        r += size;
-
-        for (int i = log; i >= 1; i--) {
-            if (((l >> i) << i) != l) push(l >> i);
-            if (((r >> i) << i) != r) push((r-1) >> i);
-        }
-
-        int l2 = l, r2 = r;
-
-        while (l < r) {
-            if (l & 1) all_apply(l++, f);
-            if (r & 1) all_apply(--r, f);
-            l >>= 1;
-            r >>= 1;
-        }
-
-        for (int i = 1; i <= log; i++) {
-            if (((l2 >> i) << i) != l2) update(l2 >> i);
-            if (((r2 >> i) << i) != r2) update((r2-1) >> i);
-        }
+    void apply(int curr, int val) {
+        seg[curr] += val;
+        lazy[curr] += val;
     }
 
-    S all_prod() {
-        return d[1];
+    void push(int curr) {
+        if (lazy[curr] == 0) return;
+
+        apply(2 * curr + 1, lazy[curr]);
+        apply(2 * curr + 2, lazy[curr]);
+
+        lazy[curr] = 0;
+    }
+
+    void update(int curr, int l, int r, int ql, int qr, int val) {
+        if (r < ql || l > qr)
+            return;
+
+        if (ql <= l && r <= qr) {
+            apply(curr, val);
+            return;
+        }
+
+        push(curr);
+
+        int mid = (l + r) / 2;
+
+        update(2 * curr + 1, l, mid, ql, qr, val);
+        update(2 * curr + 2, mid + 1, r, ql, qr, val);
+
+        seg[curr] = combine(
+            seg[2 * curr + 1],
+            seg[2 * curr + 2]
+        );
+    }
+
+    int query(int curr, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr)
+            return 0;
+
+        if (ql <= l && r <= qr)
+            return seg[curr];
+
+        push(curr);
+
+        int mid = (l + r) / 2;
+
+        return combine(
+            query(2 * curr + 1, l, mid, ql, qr),
+            query(2 * curr + 2, mid + 1, r, ql, qr)
+        );
     }
 };
 
+int main() {
+    vector<int> a = {2, 7, 1, 9, 4, 6, 3};
 
-struct S{
-    long long sum;
-    int size;
-};
-using F = long long;
-S op(S a, S b){
-    return {
-        a.sum + b.sum,
-        a.size + b.size
-    };
-}
-S e(){
-    return {0,0};
-}
-S mapping(F f, S x){
-    return {
-        x.sum + f * x.size,
-        x.size
-    };
-}
-F composition(F f, F g){
-    return f + g;
-}
-F id(){
-    return 0;
-}
+    LazySegTree st(a);
 
-int main(){
+    // Query maximum on [1, 4]
+    cout << st.query(1, 4) << '\n';
+    // 9
 
-    int n = 5;
-    vector<S> v(n);
+    // Add 5 to every element in [2, 5]
+    // a = {2, 7, 6, 14, 9, 11, 3}
+    st.update(2, 5, 5);
 
-    for(int i=0;i<n;i++)
-        v[i] = {i+1,1};
+    // Maximum on [1, 4]
+    cout << st.query(1, 4) << '\n';
+    // 14
 
-    LazySegTree<S,F,op,e,mapping,composition,id> seg(v);
+    // Add 10 to every element in [0, 2]
+    // a = {12, 17, 16, 14, 9, 11, 3}
+    st.update(0, 2, 10);
 
-    cout << seg.prod(0,5).sum << endl;
+    // Maximum of entire array
+    cout << st.query(0, 6) << '\n';
+    // 17
 
-    seg.apply(1,4,10);
-
-    cout << seg.prod(0,5).sum << endl;
-
+    // Maximum on [0, 2]
+    cout << st.query(0, 2) << '\n';
+    // 17
 }
