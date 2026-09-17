@@ -1,75 +1,51 @@
-#include <bits/stdc++.h>
-using namespace std;
-
 struct DSU {
-    private:
-        int _n;
-        vector<int> parent_or_size;
+    vector<int> p, sz;
 
-    public:
-        DSU(int n) : _n(n), parent_or_size(n, -1) {}
+    DSU(int n) : p(n), sz(n, 1) {
+        iota(p.begin(), p.end(), 0);
+    }
 
-        int leader(int a) {
-            if (parent_or_size[a] < 0) return a;
-            return parent_or_size[a] = leader(parent_or_size[a]);
-        }
+    int find(int x) {
+        if (p[x] == x) return x;
+        return p[x] = find(p[x]);
+    }
 
-        bool merge(int a, int b) {
-            a = leader(a);
-            b = leader(b);
+    bool unite(int a, int b) {
+        a = find(a); b = find(b);
 
-            if (a == b) return false;
+        if (a == b) return false;
 
-            if (-parent_or_size[a] < -parent_or_size[b])
-                swap(a, b);
+        if (sz[a] < sz[b]) swap(a, b);
 
-            parent_or_size[a] += parent_or_size[b];
-            parent_or_size[b] = a;
+        p[b] = a;
+        sz[a] += sz[b];
 
-            return true;
-        }
-
-        bool same(int a, int b) {
-            return leader(a) == leader(b);
-        }
-
-        int size(int a) {
-            return -parent_or_size[leader(a)];
-        }
-
-        vector<vector<int>> groups() {
-            vector<int> leader_buf(_n), group_size(_n);
-            for (int i = 0; i < _n; i++) {
-                leader_buf[i] = leader(i);
-                group_size[leader_buf[i]]++;
-            }
-
-            vector<vector<int>> result(_n);
-            for (int i = 0; i < _n; i++) {
-                result[i].reserve(group_size[i]);
-            }
-
-            for (int i = 0; i < _n; i++) {
-                result[leader_buf[i]].push_back(i);
-            }
-
-            result.erase(
-                remove_if(result.begin(), result.end(),
-                        [](const vector<int>& v) { return v.empty(); }),
-                result.end());
-
-            return result;
-        }
+        return true;
+    }
 };
 
 int main() {
-    DSU dsu(5);
+    DSU dsu(7);
 
-    dsu.merge(0,1);
-    dsu.merge(1,2);
+    // Connect components
+    dsu.unite(0, 1);
+    dsu.unite(1, 2);
 
-    cout << dsu.same(0,2) << endl;
-    cout << dsu.same(0,3) << endl;
+    dsu.unite(3, 4);
+    dsu.unite(4, 5);
 
-    cout << dsu.size(0) << endl;
+    // Check whether two nodes are connected
+    cout << (dsu.find(0) == dsu.find(2)) << '\n';
+    // 1
+
+    cout << (dsu.find(0) == dsu.find(3)) << '\n';
+    // 0
+
+    // Connecting two already-connected nodes
+    cout << dsu.unite(0, 2) << '\n';
+    // 0
+
+    // Connecting two different components
+    cout << dsu.unite(2, 3) << '\n';
+    // 1
 }
