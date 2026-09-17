@@ -1,78 +1,78 @@
 #include <bits/stdc++.h>
 using namespace std;
-#define ll long long
 
-const ll MOD = 1e9 + 7;
+const int MOD = 998244353;
 
-template <typename T> void matmul(vector<vector<T>> &a, vector<vector<T>> b) {
-	int n = a.size(), m = a[0].size(), p = b[0].size();
-	assert(m == b.size());
-	vector<vector<T>> c(n, vector<T>(p));
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < p; j++) {
-			for (int k = 0; k < m; k++) {
-				c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % MOD;
-			}
-		}
-	}
+struct Matrix {
+    int n, m;
+    vector<vector<int>> a;
 
-	a = c;
-}
+    Matrix(int n, int m) : n(n), m(m), a(n, vector<int>(m, 0)) {}
+    
+    Matrix(const vector<vector<int>>& v) : n(v.size()), m(v[0].size()), a(v) {}
 
-template <typename T> struct Matrix {
-	vector<vector<T>> mat;
-	Matrix() {}
-	Matrix(vector<vector<T>> a) { mat = a; }
-	Matrix(int n, int m) {
-		mat.resize(n);
-		for (int i = 0; i < n; i++) { mat[i].resize(m); }
-	}
+    Matrix(int n, bool identity = false) : n(n), m(n), a(n, vector<int>(n, 0)) {
+        if(identity){
+            for (int i = 0; i < n; i++) a[i][i] = 1;
+        }
+    }
 
-	int rows() const { return mat.size(); }
-	int cols() const { return mat[0].size(); }
+    Matrix operator*(const Matrix& other) const {
+        Matrix res(n, other.m);
 
-	void makeiden() {
-		for (int i = 0; i < rows(); i++) { mat[i][i] = 1; }
-	}
+        for (int i = 0; i < n; i++) {
+            for (int k = 0; k < m; k++) {
+                if (a[i][k] == 0) continue;
 
-	void print() const {
-		for (int i = 0; i < rows(); i++) {
-			for (int j = 0; j < cols(); j++) { cout << mat[i][j] << ' '; }
-			cout << '\n';
-		}
-	}
+                for (int j = 0; j < other.m; j++) {
+                    res.a[i][j] = (res.a[i][j] + 1LL * a[i][k] * other.a[k][j]) % MOD;
+                }
+            }
+        }
 
-	Matrix operator*=(const Matrix &b) {
-		matmul(mat, b.mat);
-		return *this;
-	}
+        return res;
+    }
 
-	Matrix operator*(const Matrix &b) { return Matrix(*this) *= b; }
+    Matrix operator^(long long k) const {
+        Matrix res(n, true);
+        Matrix base = *this;
+
+        while (k) {
+            if (k & 1)
+                res = res * base;
+
+            base = base * base;
+            k >>= 1;
+        }
+
+        return res;
+    }
 };
 
-	int main(){
-	int test_num;
-	cin >> test_num;
-	for (int t = 0; t < test_num; t++) {
-		int n, k;
-		cin >> k;
-		Matrix<ll> mat(k, k), vec(k, 1), cur(k, k);
-		cur.makeiden();
-		for (int i = 0; i < k; i++) { cin >> vec.mat[i][0]; }
+int main() {
+    long long n = 10;
+    
+    //an = an−1 + an−2, a1 = 2, a2 = 3
 
-		for (int i = 0; i < k; i++) { cin >> mat.mat[k - 1][k - i - 1]; }
+    Matrix A(2, 2);
 
-		for (int i = 1; i < k; i++) { mat.mat[i - 1][i] = 1; }
+    A.a[0][0] = 1;
+    A.a[0][1] = 1;
+    A.a[1][0] = 1;
+    A.a[1][1] = 0;
+    
+    /*
+    Matrix A({
+        {1, 1},
+        {1, 0}
+    });
+    */
 
-		cin >> n;
-		n--;
-		while (n > 0) {
-			if (n & 1) cur *= mat;
-			mat *= mat;
-			n >>= 1;
-		}
+    Matrix init(2, 1);
+    init.a[0][0] = 3; // a2
+    init.a[1][0] = 2; // a1
 
-		Matrix<ll> res = cur * vec;
-		cout << res.mat[0][0] << '\n';
-	}
+    Matrix ans = (A ^ (n - 2)) * init;
+
+    cout << ans.a[0][0] << '\n';
 }
