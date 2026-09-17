@@ -1,39 +1,57 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <class T>
-struct fenwick_tree {
-private:
-    int _n;
-    vector<T> data;
+struct Fenwick {
+    int n;
+    vector<int> bit, a;
 
-public:
-    fenwick_tree(int n) : _n(n), data(n, 0) {}
+    Fenwick(int n) : n(n), bit(n + 1, 0), a(n, 0) {}
 
-    void add(int p, T x) {
-        for (p++; p <= _n; p += p & -p)
-            data[p - 1] += x;
+    void add(int idx, int val) {
+        a[idx] += val;
+
+        for (++idx; idx <= n; idx += idx & -idx)
+            bit[idx] += val;
     }
 
-    // prefix sum [0, r)
-    T sum(int r) const {
-        T s = 0;
-        for (; r > 0; r -= r & -r)
-            s += data[r - 1];
-        return s;
+    void set(int idx, int val) {
+        add(idx, val - a[idx]);
     }
 
-    // range sum [l, r)
-    T sum(int l, int r) const {
-        return sum(r) - sum(l);
+    int sum(int idx) {
+        int res = 0;
+        for (++idx; idx > 0; idx -= idx & -idx)
+            res += bit[idx];
+        return res;
     }
 };
 
 int main() {
-    fenwick_tree<long long> fw(10);
+    Fenwick fw(7);
 
-    fw.add(3, 5);   // a[3] += 5
-    fw.add(5, 2);   // a[5] += 2
+    // Add values
+    fw.add(0, 2);
+    fw.add(1, 7);
+    fw.add(2, 1);
+    fw.add(3, 9);
+    fw.add(4, 4);
+    fw.add(5, 6);
+    fw.add(6, 3);
 
-    cout << fw.sum(0,6) << endl; // sum of [0..5]
+    // Prefix sum [0..3]
+    cout << fw.sum(3) << '\n';
+    // 19
+
+    // Set a[2] = 10
+    fw.set(2, 10);
+
+    // Prefix sum [0..3]
+    cout << fw.sum(3) << '\n';
+    // 28
+
+    // Set a[0] = 5
+    fw.set(0, 5);
+
+    cout << fw.sum(3) << '\n';
+    // 31
 }
